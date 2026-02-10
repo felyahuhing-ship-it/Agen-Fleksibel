@@ -156,6 +156,20 @@ const SetupView: React.FC<SetupViewProps> = ({ config, setConfig, onStart, onRes
                 </div>
 
                 <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest ml-4 flex justify-between">
+                    Gemini API Key
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-pink-500 hover:underline">Dapatkan Key</a>
+                  </label>
+                  <input 
+                    type="password" // Gunakan password agar key tidak terlihat orang sebelah
+                    className="w-full bg-black/30 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:ring-2 ring-pink-500/40 font-bold transition-all text-white placeholder:text-white/20" 
+                    value={config.apiKey || ''} 
+                    onChange={(e) => setConfig({ ...config, apiKey: e.target.value })} 
+                    placeholder="Masukkan API Key Gemini Anda..." 
+                  />
+                </div>
+
+                <div className="space-y-1.5">
                   <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest ml-4">Kepribadian (Personality)</label>
                   <textarea 
                     className="w-full h-32 bg-black/30 border border-white/10 rounded-[30px] px-6 py-4 outline-none focus:ring-2 ring-pink-500/40 resize-none text-sm font-medium leading-relaxed custom-scrollbar text-white/80" 
