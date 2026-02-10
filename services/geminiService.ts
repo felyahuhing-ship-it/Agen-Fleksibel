@@ -15,17 +15,23 @@ export const safetySettings = [
  */
 export const cleanResponseText = (text: string): string => {
   if (!text) return "";
+  
   let displayable = text.replace(/\[CAPTION:.*?\]/gi, '').trim();
+
   const strategyKeywords = [
     'flow', 'thought', 'strategy', 'responding', 'acknowledging', 'internal', 
     'action', 'context', 'persona', 'mode', 'gaspol', 'escalated', 'maintaining', 
     'embracing', 'transitioning', 'focusing', 'analyzing', 'request'
   ];
+  
   displayable = displayable.replace(/\*\*(.*?)\*\*/g, (match, p1) => {
     const content = p1.toLowerCase();
-    if (strategyKeywords.some(key => content.includes(key))) return '';
+    if (strategyKeywords.some(key => content.includes(key))) {
+      return '';
+    }
     return match;
   });
+
   const sentences = displayable.split(/(?<=[.!?])\s+/);
   displayable = sentences
     .filter(s => {
@@ -40,9 +46,11 @@ export const cleanResponseText = (text: string): string => {
         trimmed.includes("escalated the conversation") ||
         trimmed.includes("transitioning smoothly") ||
         (trimmed.split(' ').length > 4 && /^[a-z\s',]+$/.test(trimmed) && !trimmed.includes('gue') && !trimmed.includes('lo'));
+      
       return !isMetaPattern;
     })
     .join(' ');
+
   return displayable.replace(/^\s*"\s*|\s*"\s*$/g, '').replace(/\s+/g, ' ').trim();
 };
 
@@ -100,12 +108,12 @@ export const generateAgentResponse = async (
   history: { role: string; parts: any[] }[],
   userImage?: string
 ) => {
-  // Gunakan API Key dari Vite Environment
-  const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
+  // LOGIKA API KEY: Prioritas ke config user, fallback ke Vercel env
+  const apiKey = config.apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+  const ai = new GoogleGenAI(apiKey);
   
-  // Perbaikan inisialisasi model
   const model = ai.getGenerativeModel({ 
-    model: "gemini-1.5-flash", // Menggunakan model stabil untuk chat
+    model: "gemini-1.5-flash", 
     systemInstruction: createSystemInstruction(config),
     safetySettings: safetySettings as any
   });
@@ -141,14 +149,17 @@ export const generateAgentResponse = async (
 };
 
 export const generatePAP = async (prompt: string, config: AgentConfig): Promise<string | null> => {
-  const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
+  // LOGIKA API KEY: Prioritas ke config user, fallback ke Vercel env
+  const apiKey = config.apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+  const ai = new GoogleGenAI(apiKey);
+  
   const captionMatch = prompt.match(/\[CAPTION:(.*?)\]/i);
   if (!captionMatch) return null;
 
   try {
     return await retryOperation(async () => {
       const model = ai.getGenerativeModel({ 
-        model: "gemini-1.5-flash", // Imagen diakses lewat content generation di SDK ini
+        model: "gemini-1.5-flash",
         safetySettings: safetySettings as any
       });
 
@@ -177,8 +188,11 @@ export const generatePAP = async (prompt: string, config: AgentConfig): Promise<
   } catch (e) { throw e; }
 };
 
-export const getSpeech = async (text: string, voiceName: string): Promise<string | null> => {
-  const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
+export const getSpeech = async (text: string, voiceName: string, config: AgentConfig): Promise<string | null> => {
+  // LOGIKA API KEY: Prioritas ke config user, fallback ke Vercel env
+  const apiKey = config.apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+  const ai = new GoogleGenAI(apiKey);
+
   try {
     const cleanText = cleanResponseText(text);
     if (!cleanText) return null;
