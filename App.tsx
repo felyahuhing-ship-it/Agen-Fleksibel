@@ -135,7 +135,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden flex flex-col items-center justify-center">
+    <div className="relative h-[100dvh] w-screen overflow-hidden flex flex-col items-center justify-center">
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500"
         style={{ backgroundImage: `url(${config.background})` }}
