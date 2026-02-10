@@ -115,7 +115,7 @@ export const generateAgentResponse = async (
   history: { role: string; parts: any[] }[],
   userImage?: string
 ) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const contents = [...history];
   const parts: any[] = [];
   
@@ -152,7 +152,7 @@ export const generateAgentResponse = async (
 };
 
 export const generatePAP = async (prompt: string, config: AgentConfig): Promise<string | null> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   const captionMatch = prompt.match(/\[CAPTION:(.*?)\]/i);
   if (!captionMatch) return null;
 
@@ -191,7 +191,7 @@ export const generatePAP = async (prompt: string, config: AgentConfig): Promise<
 };
 
 export const getSpeech = async (text: string, voiceName: string): Promise<string | null> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
   try {
     const cleanText = cleanResponseText(text);
     if (!cleanText) return null;
