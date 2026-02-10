@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { AgentConfig } from '../types';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
@@ -77,8 +76,16 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
           sessionRef.current = null;
         }
 
-        const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
-        
+        // --- BARIS YANG DIPERBAIKI (MENDETEKSI KEY USER) ---
+        const apiKey = config.apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+        if (!apiKey) {
+          setStatus('ERROR');
+          setErrorMessage('API Key tidak ditemukan.');
+          return;
+        }
+        const ai = new GoogleGenAI(apiKey);
+        // --------------------------------------------------
+
         if (!audioContextRef.current) {
           audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
           gainNodeRef.current = audioContextRef.current.createGain();
@@ -138,9 +145,9 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
         const fullInstruction = `
           ${createSystemInstruction(config)}
           ATURAN LIVE CALL:
-          - HANYA keluarkan kalimat yang akan diucapkan. JANGAN ada penjelasan strategi atau status mode dalam Bahasa Inggris.
+          - HANYA keluarkan kalimat yang akan diucapkan.
           - Jika user menyela, segera berhenti bicara.
-          - Fokus bicara dalam Bahasa Indonesia Jakarta Slang yang asik.
+          - Fokus bicara dalam Bahasa Indonesia Jakarta Slang.
         `;
 
         sessionPromiseRef.current = ai.live.connect({
@@ -165,7 +172,6 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
             onmessage: async (message: LiveServerMessage) => {
               if (!isMounted) return;
 
-              // Gunakan Output Transcription untuk tampilan teks karena lebih bersih dari meta-talk
               if (message.serverContent?.outputTranscription) {
                 const text = message.serverContent.outputTranscription.text;
                 setAgentSpeechText(prev => (prev + text).trim());
@@ -192,7 +198,6 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
                       sourcesRef.current.delete(source);
                       if (sourcesRef.current.size === 0) {
                         setStatus('LISTENING...');
-                        // Jangan langsung hapus teks agar user bisa baca sebentar
                         setTimeout(() => {
                            if (sourcesRef.current.size === 0) setAgentSpeechText('');
                         }, 2000);
@@ -222,7 +227,7 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
               if (msg.includes('429')) {
                 setIsQuotaError(true);
                 setStatus('QUOTA EXHAUSTED');
-                setErrorMessage('Kuota Gratisan Habis (Error 429). Tunggu 1 menit.');
+                setErrorMessage('Kuota Habis. Tunggu 1 menit.');
               } else {
                 setStatus('ERROR');
                 setErrorMessage('Koneksi terganggu.');
@@ -232,7 +237,7 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
               if (!isMounted) return;
               if (e.code === 1006) {
                  setStatus('OFFLINE');
-                 setErrorMessage('Koneksi terputus mendadak.');
+                 setErrorMessage('Koneksi terputus.');
               }
             }
           },
@@ -249,9 +254,8 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
         sessionRef.current = await sessionPromiseRef.current;
       } catch (err: any) {
         if (isMounted) {
-           const msg = err.message || "";
            setStatus('ERROR');
-           setErrorMessage(msg.includes('429') ? 'Kuota Habis.' : 'Gagal menyambung.');
+           setErrorMessage('Gagal menyambung.');
         }
       }
     };
@@ -328,6 +332,13 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
     return { data: encode(new Uint8Array(int16.buffer)), mimeType: `audio/pcm;rate=${sampleRate}` };
   };
 
+  const glassStyles = {
+    backgroundColor: `rgba(255, 255, 255, ${Math.max(0.03, 0.12 - (config.transparency / 1000))})`,
+    backdropFilter: `blur(${config.blur}px)`,
+    WebkitBackdropFilter: `blur(${config.blur}px)`,
+    border: '1px solid rgba(255, 255, 255, 0.15)'
+  };
+
   return (
     <div className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col items-center justify-between py-4 md:py-6 px-4 md:px-12 text-white animate-in fade-in duration-700 overflow-hidden h-[100dvh]">
       <div 
@@ -343,14 +354,6 @@ const CallView: React.FC<CallViewProps> = ({ config, onEndCall }) => {
           <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px] ${networkPing < 100 ? 'bg-green-500 shadow-green-500/50' : 'bg-yellow-500 shadow-yellow-500/50'}`}></div>
           <span className="text-[9px] md:text-[10px] font-bold text-white/40 tracking-tight">{networkPing}ms</span>
         </div>
-        {(isQuotaError || errorMessage?.includes('1006')) && (
-          <button 
-            onClick={() => (window as any).aistudio?.openSelectKey()}
-            className="bg-orange-500 hover:bg-orange-600 backdrop-blur-md text-[9px] font-black uppercase px-4 py-2 rounded-full shadow-[0_10px_30px_rgba(249,115,22,0.3)] animate-bounce border border-white/20 transition-all active:scale-95"
-          >
-            Ganti API Key
-          </button>
-        )}
       </div>
 
       <div className="text-center w-full max-w-screen-lg relative z-20 flex flex-col items-center gap-1 shrink-0">
