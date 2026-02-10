@@ -1,0 +1,8 @@
+{
+  "name": "(Release) Agen Fleksibel v2.0 By FelyaHuhing",
+  "description": "A customizable Voice Agent with glassmorphism UI, flexible personality settings, and real-time voice/chat capabilities.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
