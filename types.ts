@@ -7,6 +7,17 @@ export interface AgentConfig {
   background: string;
   blur: number;
   transparency: number;
+  apiKey?: string; // Tambahkan baris ini
+}
+
+export interface AgentConfig {
+  name: string;
+  personality: string;
+  voice: string;
+  profilePic: string | null;
+  background: string;
+  blur: number;
+  transparency: number;
 }
 
 export interface ChatMessage {
