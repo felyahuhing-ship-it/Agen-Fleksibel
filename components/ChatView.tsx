@@ -331,8 +331,8 @@ const ChatView: React.FC<ChatViewProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col p-4 md:p-8 max-w-6xl mx-auto relative overflow-hidden"" onDragOver={e => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}>
-      <header className="flex items-center justify-between p-4 rounded-full mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-300" style={glassStyles}>
+    <div className="w-full h-full flex flex-col p-4 md:p-8 max-w-6xl mx-auto relative overflow-hidden" onDragOver={e => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}>
+      <header className="flex items-center justify-between p-4 rounded-full mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-300" style={glassStyles}> style={glassStyles}>
         <div className="flex items-center gap-4">
           <button onClick={onOpenSidebar} className="p-3 hover:bg-white/10 rounded-full transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -436,40 +436,41 @@ const ChatView: React.FC<ChatViewProps> = ({
         )}
       </div>
 
-      <footer className="relative flex items-center gap-2 p-2 rounded-full shadow-[0_15px_35px_rgba(0,0,0,0.4)] transition-all mb-10 mx-4 group" style={{...glassStyles, paddingRight: '6px'}}>
-  
-  {/* Tombol Lampiran */}
-  <label className="flex-none p-2.5 hover:bg-white/10 rounded-full cursor-pointer transition-all active:scale-90 flex items-center justify-center">
-    <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-    {attachedImage ? (
-      <div className="relative w-7 h-7 rounded-lg overflow-hidden border-2 border-pink-500"><img src={attachedImage} className="w-full h-full object-cover" /></div>
-    ) : (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-    )}
-  </label>
+      <footer 
+        className="relative flex items-center gap-2 p-2 rounded-full shadow-[0_15px_35px_rgba(0,0,0,0.4)] transition-all mb-14 mx-4 group" 
+        style={{...glassStyles, paddingRight: '8px', minHeight: '64px', display: 'flex', alignItems: 'center'}}
+      >
+        <div className="flex-none flex items-center justify-center">
+          <label className="p-2.5 hover:bg-white/10 rounded-full cursor-pointer transition-all active:scale-90 flex items-center justify-center">
+            <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+            {attachedImage ? (
+              <div className="relative w-7 h-7 rounded-lg overflow-hidden border-2 border-pink-500"><img src={attachedImage} className="w-full h-full object-cover" /></div>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            )}
+          </label>
+        </div>
 
-  {/* Input Teks - Ditambah min-w-0 agar tidak serakah ruang */}
-  <input 
-    type="text" 
-    placeholder={`Ngobrol sama ${config.name}...`} 
-    className="flex-1 min-w-0 bg-transparent outline-none py-3 text-sm font-semibold text-white placeholder:text-white/20 px-2" 
-    value={inputText} 
-    onChange={e => setInputText(e.target.value)} 
-    onKeyDown={e => e.key === 'Enter' && handleSend()} 
-  />
+        <input 
+          type="text" 
+          placeholder={`Ngobrol sama ${config.name}...`} 
+          className="flex-1 min-w-0 bg-transparent outline-none py-3 text-sm font-semibold text-white placeholder:text-white/20 px-2" 
+          value={inputText} 
+          onChange={e => setInputText(e.target.value)} 
+          onKeyDown={e => e.key === 'Enter' && handleSend()} 
+        />
 
-  {/* Tombol Kirim - Ukuran dipaksa (Fixed Size) */}
-  <button 
-    onClick={() => handleSend()} 
-    disabled={(!inputText.trim() && !attachedImage) || isTyping} 
-    className="flex-none w-11 h-11 bg-gradient-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-full transition-all active:scale-95 disabled:opacity-20 shadow-lg shadow-pink-500/20 border border-white/10 flex items-center justify-center"
-    style={{ minWidth: '44px', minHeight: '44px' }}
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white translate-x-0.5" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-    </svg>
-  </button>
-</footer>
+        <button 
+          onClick={() => handleSend()} 
+          disabled={(!inputText.trim() && !attachedImage) || isTyping} 
+          className="flex-none bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-20 transition-all"
+          style={{ width: '48px', height: '48px', minWidth: '48px', flexShrink: 0 }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white translate-x-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+          </svg>
+        </button>
+      </footer>
     </div>
   );
 };
