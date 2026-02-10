@@ -432,7 +432,7 @@ const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       <footer 
-        className="relative flex items-center gap-2 p-2 rounded-full shadow-[0_15px_35px_rgba(0,0,0,0.4)] transition-all mb-3 mx-4 group" 
+        className="relative flex items-center gap-2 p-2 rounded-full shadow-[0_15px_35px_rgba(0,0,0,0.4)] transition-all mb-2 mx-4 group" 
         style={{...glassStyles, paddingRight: '8px', minHeight: '64px', display: 'flex', alignItems: 'center'}}
       >
         <div className="flex-none flex items-center justify-center">
