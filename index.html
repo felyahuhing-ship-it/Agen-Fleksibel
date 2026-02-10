@@ -1,25 +1,45 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Anya AI Voice Agent</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* 1. @import HARUS paling atas */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
+
+        /* 2. CSS Dasar untuk HP agar tidak scroll/gepeng */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
+            position: fixed;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            background-color: black;
         }
+
+        #root {
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: env(safe-area-inset-bottom, 24px);
+        }
+
+        /* 3. CSS Estetik (Yang Anda tanyakan) */
         .glass {
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
         .glass-dark {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .animate-pulse-slow {
@@ -29,19 +49,17 @@
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: .7; transform: scale(1.05); }
         }
+
+        /* Tambahan: Sembunyikan scrollbar di chat */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
-    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
-  }
-}
-</script>
 </head>
 <body class="bg-black text-white">
     <div id="root"></div>
+    
+    <!-- PENTING: Script pemanggil kode agar aplikasi tidak hitam -->
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
