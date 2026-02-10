@@ -2,6 +2,21 @@
 <html lang="id">
 <head>
     <style>
+        /* Pastikan body tidak bisa di-scroll keluar area */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: fixed; /* Mencegah layar "membal" saat keyboard muncul */
+    width: 100%;
+}
+
+/* Mengatasi Safe Area di HP modern (iPhone & Android baru) */
+#root {
+    height: 100%;
+    padding-bottom: env(safe-area-inset-bottom);
+}
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
     body {
