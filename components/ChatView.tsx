@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { AgentConfig, ChatMessage } from '../types';
 import { generateAgentResponse, getSpeech, generatePAP, cleanResponseText } from '../services/geminiService';
@@ -173,13 +172,11 @@ const ChatView: React.FC<ChatViewProps> = ({
       let papUrl: string | null = null;
       let finalDisplayText = cleanResponseText(rawFirstResponse);
 
-      // LOGIKA ANTI-HALU FOTO (OVERWRITE TEXT JIKA GAGAL)
       if (rawFirstResponse.toUpperCase().includes('[CAPTION:')) {
         setLoadingType('pap'); setLoadingStatus("Lagi bikin PAP...");
         try {
           papUrl = await generatePAP(rawFirstResponse, config);
         } catch (e: any) {
-          // JIKA GAGAL PAP: Tetap eksplisit sesuai permintaan sebelumnya
           const failMessages = [
             "Duh, sori banget ya, fotonya tadi mental. Filternya ketat banget, kayak memek gue... Heheheh...",
             "Yah elah, fotonya diblokir sensor sialan! Padahal tadi udah keliatan belahan dikit. Sistem kampret, padahal gue lagi sange pengen pamer ke lo.",
@@ -223,7 +220,6 @@ const ChatView: React.FC<ChatViewProps> = ({
       })();
 
     } catch (error: any) {
-      // LOGIKA ANTI-HALU KUOTA (ERROR 429) - DIBUAT SUPER EKSPLISIT
       const isQuotaError = error.message?.includes('429') || error.status === 'RESOURCE_EXHAUSTED' || error.status === 429;
       
       if (isQuotaError) {
@@ -256,7 +252,6 @@ const ChatView: React.FC<ChatViewProps> = ({
         setMessages(prev => [...prev, newAgentMsg]);
         setActiveMessageId(agentMsgId);
 
-        // Coba play audio untuk pesan error kuota biar makin ngena
         getSpeech(failText, config.voice).then(audio => {
           if (audio) {
             setMessages(prev => prev.map(m => m.id === agentMsgId ? { ...m, audio } : m));
@@ -332,7 +327,7 @@ const ChatView: React.FC<ChatViewProps> = ({
 
   return (
     <div className="w-full h-full flex flex-col p-4 md:p-8 max-w-6xl mx-auto relative overflow-hidden" onDragOver={e => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}>
-      <header className="flex items-center justify-between p-4 rounded-full mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-300" style={glassStyles}> style={glassStyles}>
+      <header className="flex items-center justify-between p-4 rounded-full mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-300" style={glassStyles}>
         <div className="flex items-center gap-4">
           <button onClick={onOpenSidebar} className="p-3 hover:bg-white/10 rounded-full transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
