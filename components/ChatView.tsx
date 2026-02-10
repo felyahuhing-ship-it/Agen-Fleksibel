@@ -331,7 +331,7 @@ const ChatView: React.FC<ChatViewProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col p-4 md:p-8 max-w-6xl mx-auto relative" onDragOver={e => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}>
+    <div className="w-full h-full flex flex-col p-4 md:p-8 max-w-6xl mx-auto relative overflow-hidden"" onDragOver={e => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}>
       <header className="flex items-center justify-between p-4 rounded-full mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition-all duration-300" style={glassStyles}>
         <div className="flex items-center gap-4">
           <button onClick={onOpenSidebar} className="p-3 hover:bg-white/10 rounded-full transition-all">
