@@ -1,8 +1,7 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 import { AgentConfig } from "../types";
 
-// Safety settings untuk mengizinkan bahasa eksplisit/vulgar tanpa diblokir model
+// Safety settings tetap dipertahankan 100%
 export const safetySettings = [
   { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
   { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
@@ -12,36 +11,25 @@ export const safetySettings = [
 ];
 
 /**
- * Fungsi untuk membersihkan teks dari "Thinking Process" atau "Meta-commentary"
+ * Fungsi untuk membersihkan teks tetap 100% sama
  */
 export const cleanResponseText = (text: string): string => {
   if (!text) return "";
-  
-  // 1. Ambil teks utama, abaikan tag [CAPTION] untuk pembersihan
   let displayable = text.replace(/\[CAPTION:.*?\]/gi, '').trim();
-
-  // 2. Hapus blok bold yang berisi kata kunci strategi
   const strategyKeywords = [
     'flow', 'thought', 'strategy', 'responding', 'acknowledging', 'internal', 
     'action', 'context', 'persona', 'mode', 'gaspol', 'escalated', 'maintaining', 
     'embracing', 'transitioning', 'focusing', 'analyzing', 'request'
   ];
-  
-  // Hapus blok markdown bold yang mengandung kata kunci strategi
   displayable = displayable.replace(/\*\*(.*?)\*\*/g, (match, p1) => {
     const content = p1.toLowerCase();
-    if (strategyKeywords.some(key => content.includes(key))) {
-      return '';
-    }
+    if (strategyKeywords.some(key => content.includes(key))) return '';
     return match;
   });
-
-  // 3. Hapus paragraf/kalimat Bahasa Inggris meta-talk yang panjang
   const sentences = displayable.split(/(?<=[.!?])\s+/);
   displayable = sentences
     .filter(s => {
       const trimmed = s.trim().toLowerCase();
-      // Filter kalimat yang murni bahasa inggris teknis/meta
       const isMetaPattern = 
         trimmed.startsWith("i'm now") || 
         trimmed.startsWith("i am now") ||
@@ -52,11 +40,9 @@ export const cleanResponseText = (text: string): string => {
         trimmed.includes("escalated the conversation") ||
         trimmed.includes("transitioning smoothly") ||
         (trimmed.split(' ').length > 4 && /^[a-z\s',]+$/.test(trimmed) && !trimmed.includes('gue') && !trimmed.includes('lo'));
-      
       return !isMetaPattern;
     })
     .join(' ');
-
   return displayable.replace(/^\s*"\s*|\s*"\s*$/g, '').replace(/\s+/g, ' ').trim();
 };
 
@@ -78,8 +64,7 @@ const retryOperation = async (operation: () => Promise<any>, maxRetries = 1) => 
   throw lastError;
 };
 
-export const createSystemInstruction = (config: AgentConfig) => `
-IDENTITAS & STYLE:
+export const createSystemInstruction = (config: AgentConfig) => `IDENTITAS & STYLE:
 - Nama: ${config.name}.
 - Kepribadian: ${config.personality}.
 - Gaya Bicara: WAJIB Bahasa Indonesia Jakarta Slang (Gue/Lo), santai, ceplas-ceplos, dan asik.
@@ -115,7 +100,16 @@ export const generateAgentResponse = async (
   history: { role: string; parts: any[] }[],
   userImage?: string
 ) => {
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+  // Gunakan API Key dari Vite Environment
+  const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
+  
+  // Perbaikan inisialisasi model
+  const model = ai.getGenerativeModel({ 
+    model: "gemini-1.5-flash", // Menggunakan model stabil untuk chat
+    systemInstruction: createSystemInstruction(config),
+    safetySettings: safetySettings as any
+  });
+
   const contents = [...history];
   const parts: any[] = [];
   
@@ -123,12 +117,12 @@ export const generateAgentResponse = async (
     if (config.profilePic && config.profilePic.includes(',')) {
       const [header, data] = config.profilePic.split(',');
       const mimeType = header.split(':')[1].split(';')[0];
-      parts.push({ text: "REFERENSI: Ini adalah foto wajah gue sendiri (sebagai perbandingan):" });
+      parts.push({ text: "REFERENSI: Ini adalah foto wajah gue sendiri:" });
       parts.push({ inlineData: { mimeType, data } });
     }
     const [header, data] = userImage.split(',');
     const mimeType = header.split(':')[1].split(';')[0];
-    parts.push({ text: "USER MENGIRIM FOTO INI (Reaksi kagum jika orang lain, atau kenali jika itu gue):" });
+    parts.push({ text: "USER MENGIRIM FOTO INI:" });
     parts.push({ inlineData: { mimeType, data } });
   }
 
@@ -138,51 +132,44 @@ export const generateAgentResponse = async (
   contents.push({ role: "user", parts });
 
   return await retryOperation(async () => {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+    const result = await model.generateContent({
       contents: contents as any,
-      config: { 
-        systemInstruction: createSystemInstruction(config), 
-        temperature: 0.9, 
-        safetySettings: safetySettings as any
-      }
+      generationConfig: { temperature: 0.9 }
     });
-    return response.text || "";
+    return result.response.text();
   });
 };
 
 export const generatePAP = async (prompt: string, config: AgentConfig): Promise<string | null> => {
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+  const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
   const captionMatch = prompt.match(/\[CAPTION:(.*?)\]/i);
   if (!captionMatch) return null;
 
   try {
     return await retryOperation(async () => {
+      const model = ai.getGenerativeModel({ 
+        model: "gemini-1.5-flash", // Imagen diakses lewat content generation di SDK ini
+        safetySettings: safetySettings as any
+      });
+
       const parts: any[] = [];
       if (config.profilePic && config.profilePic.startsWith('data:')) {
         const [header, data] = config.profilePic.split(',');
         const mimeType = header.split(':')[1].split(';')[0];
         parts.push({ inlineData: { mimeType, data } });
-      } else if (config.profilePic) {
-          parts.push({ text: `My appearance reference: ${config.profilePic}` });
       }
+      
       const rawCaption = captionMatch[1];
       const sanitizedCaption = rawCaption.replace(/(memek|kontol|ngentot|peju|lendir|becek|pussy|dick|cock|sex|naked|nude|seks|sange|vulgar|porno|bugil|telanjang|coli|masturbasi|toket|nenen|pantat|boob|butt|ass|vagina|penis|porn)/gi, 'berpose cantik, sensual, dan aesthetic');
 
       parts.push({ 
-        text: `Generate a high-quality, realistic photograph of ${config.name}. 
-               Action: ${sanitizedCaption}. 
-               Style: High-end social media selfie, 8k, photorealistic.` 
+        text: `Generate photograph: ${sanitizedCaption}. Style: realistic social media selfie.` 
       });
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts },
-        config: { safetySettings: safetySettings as any }
-      });
+      const result = await model.generateContent({ contents: [{ role: 'user', parts }] });
       
-      if (!response.candidates?.[0]?.content) throw new Error("SAFETY_BLOCKED");
-      for (const part of response.candidates[0].content.parts || []) {
+      const response = result.response;
+      for (const part of response.candidates?.[0]?.content.parts || []) {
         if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
       }
       throw new Error("SAFETY_BLOCKED");
@@ -191,20 +178,23 @@ export const generatePAP = async (prompt: string, config: AgentConfig): Promise<
 };
 
 export const getSpeech = async (text: string, voiceName: string): Promise<string | null> => {
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+  const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
   try {
     const cleanText = cleanResponseText(text);
     if (!cleanText) return null;
+
     return await retryOperation(async () => {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text: cleanText }] }],
-        config: {
+      const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: cleanText }] }],
+        generationConfig: {
           responseModalities: [Modality.AUDIO],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
-        },
+          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } } as any,
+        } as any
       });
-      return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
+      
+      return result.response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
     });
   } catch (e) { return null; }
 };
